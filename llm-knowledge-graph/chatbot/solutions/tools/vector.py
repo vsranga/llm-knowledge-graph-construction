@@ -27,7 +27,7 @@ graph = Neo4jGraph(
 chunk_vector = Neo4jVector.from_existing_index(
     embedding_provider,
     graph=graph,
-    index_name="vector",
+    index_name="chunkVector",
     embedding_node_property="embedding",
     text_node_property="text",
     retrieval_query="""
@@ -81,3 +81,6 @@ chunk_retriever = create_retrieval_chain(
 
 def find_chunk(q):
     return chunk_retriever.invoke({"input": q})
+
+while (q := input("> ")) != "exit":
+    print(find_chunk(q))

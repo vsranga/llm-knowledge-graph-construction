@@ -1,17 +1,32 @@
-from llm import llm
-from graph import graph
+import os
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.prompts import PromptTemplate
 from langchain.schema import StrOutputParser
 from langchain.tools import Tool
-from langchain_neo4j import Neo4jChatMessageHistory
+from langchain_openai import ChatOpenAI
+from langchain_neo4j import Neo4jChatMessageHistory, Neo4jGraph
 from langchain.agents import AgentExecutor, create_react_agent
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain import hub
 from utils import get_session_id
 
+# Import for tracing
+from langchain.callbacks.tracers import ConsoleCallbackHandler
+
 from tools.vector import find_chunk
 from tools.cypher import run_cypher
+
+
+llm = ChatOpenAI(
+    openai_api_key=os.getenv('OPENAI_API_KEY'), 
+    temperature=0
+)
+
+graph = Neo4jGraph(
+    url=os.getenv('NEO4J_URI'),
+    username=os.getenv('NEO4J_USERNAME'),
+    password=os.getenv('NEO4J_PASSWORD')
+)
 
 chat_prompt = ChatPromptTemplate.from_messages(
     [
@@ -91,6 +106,7 @@ agent_executor = AgentExecutor(
     agent=agent,
     tools=tools,
     handle_parsing_errors=True,
+    max_iterations=3,
     verbose=True
     )
 
@@ -98,7 +114,7 @@ chat_agent = RunnableWithMessageHistory(
     agent_executor,
     get_memory,
     input_messages_key="input",
-    history_messages_key="chat_history",
+    history_messages_key="chat_history"
 )
 
 def generate_response(user_input):
@@ -106,9 +122,16 @@ def generate_response(user_input):
     Create a handler that calls the Conversational agent
     and returns a response to be rendered in the UI
     """
-
+    
+    # Create console tracer
+    console_tracer = ConsoleCallbackHandler()
+    
     response = chat_agent.invoke(
         {"input": user_input},
-        {"configurable": {"session_id": get_session_id()}},)
+        {"configurable": {"session_id": get_session_id()},
+         "callbacks": [console_tracer]},)
 
     return response['output']
+
+while (q := input("> ")) != "exit":
+    print(generate_response(q))

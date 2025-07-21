@@ -2,11 +2,21 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-from llm import llm
-from graph import graph
+from langchain_openai import ChatOpenAI
 
-from langchain_neo4j import GraphCypherQAChain
+from langchain_neo4j import GraphCypherQAChain, Neo4jGraph
 from langchain.prompts import PromptTemplate
+
+llm = ChatOpenAI(
+    openai_api_key=os.getenv('OPENAI_API_KEY'), 
+    temperature=0
+)
+
+graph = Neo4jGraph(
+    url=os.getenv('NEO4J_URI'),
+    username=os.getenv('NEO4J_USERNAME'),
+    password=os.getenv('NEO4J_PASSWORD')
+)
 
 CYPHER_GENERATION_TEMPLATE = """Task:Generate Cypher statement to query a graph database.
 Instructions:
@@ -67,6 +77,10 @@ cypher_chain = GraphCypherQAChain.from_llm(
 
 def run_cypher(q):
     cypher_chain.invoke({"query": q})
+
+while (q := input("> ")) != "exit":
+    print(run_cypher(q))
+
     
 
   

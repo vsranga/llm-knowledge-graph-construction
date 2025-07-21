@@ -47,12 +47,16 @@ chunks = text_splitter.split_documents(docs)
 
 for chunk in chunks:
 
+
     filename = os.path.basename(chunk.metadata["source"])
     chunk_id = f"{filename}.{chunk.metadata["page"]}"
     print("Processing -", chunk_id)
 
     # Embed the chunk
     chunk_embedding = embedding_provider.embed_query(chunk.page_content)
+
+    print("Chunk embedding: ",  chunk_embedding[:10] if chunk_embedding else "None"
+          )
 
     # Add the Document and Chunk nodes to the graph
     properties = {
@@ -76,6 +80,8 @@ for chunk in chunks:
     # Generate the entities and relationships from the chunk
     graph_docs = doc_transformer.convert_to_graph_documents([chunk])
 
+    print("Graph documents generated: ", len(graph_docs))
+
     # Map the entities in the graph documents to the chunk node
     for graph_doc in graph_docs:
         chunk_node = Node(
@@ -85,6 +91,8 @@ for chunk in chunks:
 
         for node in graph_doc.nodes:
 
+            print("Node: ", node.id, node.type, node.properties if node.properties else ""      )
+
             graph_doc.relationships.append(
                 Relationship(
                     source=chunk_node,
@@ -92,9 +100,13 @@ for chunk in chunks:
                     type="HAS_ENTITY"
                     )
                 )
-
+        for relationship in graph_doc.relationships:
+            print("Relationship: ", relationship.source.id, 
+                  relationship.target.id, relationship.type)    
+            
     # add the graph documents to the graph
     graph.add_graph_documents(graph_docs)
+  
 
 # Create the vector index
 graph.query("""
