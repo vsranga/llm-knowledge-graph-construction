@@ -11,8 +11,8 @@ from langchain_community.graphs.graph_document import Node, Relationship
 from dotenv import load_dotenv
 load_dotenv()
 
-DOCS_PATH = "llm-knowledge-graph/data/course/pdfs"
-
+# DOCS_PATH = "llm-knowledge-graph/data/course/pdfs"
+DOCS_PATH = "/data/ranga/GenAI_WS/neo4j/llm-knowledge-graph-construction/llm-knowledge-graph/data/news"
 llm = ChatOpenAI(
     openai_api_key=os.getenv('OPENAI_API_KEY'), 
     model_name="gpt-3.5-turbo"

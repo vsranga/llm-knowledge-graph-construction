@@ -1,4 +1,4 @@
-# Setup
+source # Setup
 
 This repository accompanies the [Constructing Knowledge Graphs with LLMs course](https://graphacademy.neo4j.com/courses/llm-knowledge-graph-construction) on [GraphAcademy](https://graphacademy.neo4j.com).
 
